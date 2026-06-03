@@ -20,6 +20,27 @@ To release a new version (e.g. from `1.0.0` -> `2.0.0`):
   * Update the `[Unreleased]` url: `v1.0.0...HEAD` -> `v2.0.0...HEAD`
 
 -->
+## [Unreleased]
+
+### Added
+
+* `GoodputRecorder(..., enable_background_writes=True)` (default `False`):
+  dispatches per-step Cloud Logging writes (`record_step_*_time`,
+  `record_data_loading_*_time`, `record_custom_badput_event_*_time`, etc.)
+  to a daemon-thread queue and flushes them in the background, so the
+  recorder no longer blocks the calling thread on `Logger.log_struct`'s
+  ~50–150 ms gRPC RTT. The Cloud Logging entry timestamp is captured at
+  *call* time, not flush time, so `GoodputCalculator` time-window queries
+  remain accurate. Lost-on-crash window is bounded by the worker's flush
+  interval (default 2 s, configurable via `background_flush_interval_s`).
+  Use this when the recorder is on the per-step critical path of a
+  training loop and you observe inter-step host gaps tracing back to
+  synchronous logging RPCs. The default is `False` so existing callers
+  keep their synchronous semantics.
+* `_CloudLogger.flush()`: drain the background queue and join the writer
+  thread (no-op when background writes are disabled). Registered as an
+  `atexit` hook automatically when `enable_background_writes=True`.
+
 ## [0.0.16] - 2026-01-10
 
 * Add Exclusion API post-processing support & example offline scripts.
