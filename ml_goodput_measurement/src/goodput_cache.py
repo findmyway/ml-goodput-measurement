@@ -3,7 +3,7 @@
 import datetime
 from typing import Any
 
-from cloud_goodput.ml_goodput_measurement.src import goodput_utils
+from ml_goodput_measurement.src import goodput_utils
 
 
 StepInfo = goodput_utils.StepInfo

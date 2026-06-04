@@ -11,10 +11,10 @@ import logging
 import threading
 from typing import Any, Optional, Union
 
-from cloud_goodput.ml_goodput_measurement.src import checkpoint_badput_calculator
-from cloud_goodput.ml_goodput_measurement.src import goodput_cache
-from cloud_goodput.ml_goodput_measurement.src import goodput_exclusion
-from cloud_goodput.ml_goodput_measurement.src import goodput_utils
+from ml_goodput_measurement.src import checkpoint_badput_calculator
+from ml_goodput_measurement.src import goodput_cache
+from ml_goodput_measurement.src import goodput_exclusion
+from ml_goodput_measurement.src import goodput_utils
 
 
 get_timestamp_from_log_entry = goodput_utils.get_timestamp_from_log_entry

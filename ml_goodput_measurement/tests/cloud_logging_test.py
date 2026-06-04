@@ -4,7 +4,7 @@ import logging
 from unittest import mock
 
 from absl.testing import absltest
-from cloud_goodput.ml_goodput_measurement.src import goodput
+from ml_goodput_measurement.src import goodput
 
 _CloudLogger = goodput._CloudLogger
 

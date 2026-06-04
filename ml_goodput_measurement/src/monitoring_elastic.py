@@ -1,8 +1,8 @@
 """Elastic Goodput monitoring API."""
 
-from cloud_goodput.ml_goodput_measurement.src import goodput_elastic
-from cloud_goodput.ml_goodput_measurement.src import goodput_utils
-from cloud_goodput.ml_goodput_measurement.src import monitoring
+from ml_goodput_measurement.src import goodput_elastic
+from ml_goodput_measurement.src import goodput_utils
+from ml_goodput_measurement.src import monitoring
 
 GCPOptions = goodput_utils.GCPOptions
 

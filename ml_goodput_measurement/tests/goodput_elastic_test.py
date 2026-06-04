@@ -3,8 +3,8 @@
 import datetime
 from typing import Optional
 
-from cloud_goodput.ml_goodput_measurement.src import goodput_elastic
-from cloud_goodput.ml_goodput_measurement.src import goodput_utils
+from ml_goodput_measurement.src import goodput_elastic
+from ml_goodput_measurement.src import goodput_utils
 
 from google3.testing.pybase import googletest
 
