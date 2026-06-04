@@ -3,8 +3,8 @@
 import datetime
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-from cloud_goodput.ml_goodput_measurement.src import exclusion_utils
-from cloud_goodput.ml_goodput_measurement.src import goodput_utils
+from ml_goodput_measurement.src import exclusion_utils
+from ml_goodput_measurement.src import goodput_utils
 
 BadputType = goodput_utils.BadputType
 UnproductiveTimeDict = Dict[BadputType, Union[float, Dict[str, float]]]

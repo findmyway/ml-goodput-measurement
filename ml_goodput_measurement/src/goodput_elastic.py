@@ -3,8 +3,8 @@
 import datetime
 from typing import Any, Optional, Union
 
-from cloud_goodput.ml_goodput_measurement.src import goodput
-from cloud_goodput.ml_goodput_measurement.src import goodput_utils
+from ml_goodput_measurement.src import goodput
+from ml_goodput_measurement.src import goodput_utils
 
 _JOB_NAME = 'job_name'
 _ACTIVE_SLICES = 'active_slices'

@@ -2,8 +2,8 @@
 
 import datetime
 
-from cloud_goodput.ml_goodput_measurement.src import goodput_cache
-from cloud_goodput.ml_goodput_measurement.src import goodput_utils
+from ml_goodput_measurement.src import goodput_cache
+from ml_goodput_measurement.src import goodput_utils
 
 from google3.testing.pybase import googletest
 

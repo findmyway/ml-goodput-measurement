@@ -12,9 +12,9 @@ from multiprocessing import synchronize
 import os
 import time
 
-from cloud_goodput.ml_goodput_measurement.src import gcp_metrics
-from cloud_goodput.ml_goodput_measurement.src import goodput
-from cloud_goodput.ml_goodput_measurement.src import goodput_utils
+from ml_goodput_measurement.src import gcp_metrics
+from ml_goodput_measurement.src import goodput
+from ml_goodput_measurement.src import goodput_utils
 from tensorboardX import writer
 
 BadputType = goodput_utils.BadputType

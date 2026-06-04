@@ -7,9 +7,9 @@ the uploading of step deviation, goodput and badput data to Tensorboard.
 from unittest import mock
 
 from absl.testing import absltest
-from cloud_goodput.ml_goodput_measurement.src import gcp_metrics
-from cloud_goodput.ml_goodput_measurement.src import goodput_utils
-from cloud_goodput.ml_goodput_measurement.src import monitoring
+from ml_goodput_measurement.src import gcp_metrics
+from ml_goodput_measurement.src import goodput_utils
+from ml_goodput_measurement.src import monitoring
 
 from google.cloud import monitoring_v3
 
@@ -123,7 +123,7 @@ class GoodputMonitorTests(absltest.TestCase):
     self.assertIsNone(goodput_monitor._goodput_process)
 
   @patch(
-      'cloud_goodput.ml_goodput_measurement.src.monitoring.GoodputMonitor._final_goodput_query_and_upload'
+      'ml_goodput_measurement.src.monitoring.GoodputMonitor._final_goodput_query_and_upload'
   )
   @patch('multiprocessing.Event')
   @patch('multiprocessing.Process')
@@ -181,7 +181,7 @@ class GoodputMonitorTests(absltest.TestCase):
     self.assertIsNone(goodput_monitor._goodput_process)
 
   @patch(
-      'cloud_goodput.ml_goodput_measurement.src.monitoring.GoodputMonitor._final_goodput_query_and_upload'
+      'ml_goodput_measurement.src.monitoring.GoodputMonitor._final_goodput_query_and_upload'
   )
   @patch('multiprocessing.Event')
   @patch('multiprocessing.Process')
@@ -224,7 +224,7 @@ class GoodputMonitorTests(absltest.TestCase):
     mock_final_goodput_upload.assert_not_called()
 
   @patch(
-      'cloud_goodput.ml_goodput_measurement.src.monitoring.GoodputMonitor._final_goodput_query_and_upload'
+      'ml_goodput_measurement.src.monitoring.GoodputMonitor._final_goodput_query_and_upload'
   )
   @patch('multiprocessing.Event')
   @patch('multiprocessing.Process')
@@ -267,7 +267,7 @@ class GoodputMonitorTests(absltest.TestCase):
     mock_final_goodput_upload.assert_not_called()
 
   @patch(
-      'cloud_goodput.ml_goodput_measurement.src.monitoring.GoodputMonitor._write_goodput_to_tensorboard'
+      'ml_goodput_measurement.src.monitoring.GoodputMonitor._write_goodput_to_tensorboard'
   )
   @patch('tensorboardX.writer.SummaryWriter')
   @patch('google.cloud.logging.Client')
@@ -294,7 +294,7 @@ class GoodputMonitorTests(absltest.TestCase):
     self.assertTrue(goodput_monitor._goodput_termination_event.is_set())
 
   @patch(
-      'cloud_goodput.ml_goodput_measurement.src.monitoring.GoodputMonitor._write_goodput_to_tensorboard'
+      'ml_goodput_measurement.src.monitoring.GoodputMonitor._write_goodput_to_tensorboard'
   )
   @patch('tensorboardX.writer.SummaryWriter')
   @patch('google.cloud.logging.Client')
@@ -325,7 +325,7 @@ class GoodputMonitorTests(absltest.TestCase):
     self.assertTrue(goodput_monitor._goodput_termination_event.is_set())
 
   @patch(
-      'cloud_goodput.ml_goodput_measurement.src.monitoring.GoodputMonitor._write_badput_to_tensorboard'
+      'ml_goodput_measurement.src.monitoring.GoodputMonitor._write_badput_to_tensorboard'
   )
   @patch('tensorboardX.writer.SummaryWriter')
   @patch('google.cloud.logging.Client')
@@ -359,7 +359,7 @@ class GoodputMonitorTests(absltest.TestCase):
     self.assertTrue(goodput_monitor._goodput_termination_event.is_set())
 
   @patch(
-      'cloud_goodput.ml_goodput_measurement.src.monitoring.GoodputMonitor._write_step_deviation_to_tensorboard'
+      'ml_goodput_measurement.src.monitoring.GoodputMonitor._write_step_deviation_to_tensorboard'
   )
   @patch('tensorboardX.writer.SummaryWriter')
   @patch('google.cloud.logging.Client')
@@ -392,7 +392,7 @@ class GoodputMonitorTests(absltest.TestCase):
     self.assertTrue(goodput_monitor._step_deviation_termination_event.is_set())
 
   @patch(
-      'cloud_goodput.ml_goodput_measurement.src.monitoring.GoodputMonitor._write_step_deviation_to_tensorboard'
+      'ml_goodput_measurement.src.monitoring.GoodputMonitor._write_step_deviation_to_tensorboard'
   )
   @patch('tensorboardX.writer.SummaryWriter')
   @patch('google.cloud.logging.Client')
@@ -1152,13 +1152,13 @@ class GoodputMonitorTests(absltest.TestCase):
       )
 
   @patch(
-      'cloud_goodput.ml_goodput_measurement.src.monitoring.GoodputMonitor._final_interval_goodput_query_and_upload'
+      'ml_goodput_measurement.src.monitoring.GoodputMonitor._final_interval_goodput_query_and_upload'
   )
   @patch(
-      'cloud_goodput.ml_goodput_measurement.src.monitoring.GoodputMonitor._final_step_deviation_query_and_upload'
+      'ml_goodput_measurement.src.monitoring.GoodputMonitor._final_step_deviation_query_and_upload'
   )
   @patch(
-      'cloud_goodput.ml_goodput_measurement.src.monitoring.GoodputMonitor._final_goodput_query_and_upload'
+      'ml_goodput_measurement.src.monitoring.GoodputMonitor._final_goodput_query_and_upload'
   )
   async def test_goodput_monitor_final_query_and_upload(
       self,

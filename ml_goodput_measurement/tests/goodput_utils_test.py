@@ -1,7 +1,7 @@
 """Tests to validate the goodput utils."""
 from unittest import mock
 from absl.testing import absltest
-from cloud_goodput.ml_goodput_measurement.src import goodput_utils
+from ml_goodput_measurement.src import goodput_utils
 import requests
 
 

@@ -4,7 +4,7 @@ import datetime
 from typing import Tuple
 
 from absl.testing import absltest
-from cloud_goodput.ml_goodput_measurement.src import exclusion_utils
+from ml_goodput_measurement.src import exclusion_utils
 
 TimeRange = Tuple[datetime.datetime, datetime.datetime]
 

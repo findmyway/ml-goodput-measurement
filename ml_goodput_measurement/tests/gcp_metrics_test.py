@@ -3,7 +3,7 @@
 from unittest import mock
 
 from absl.testing import absltest
-from cloud_goodput.ml_goodput_measurement.src import gcp_metrics
+from ml_goodput_measurement.src import gcp_metrics
 from google.api_core import exceptions
 from google.cloud import monitoring_v3
 
@@ -137,7 +137,7 @@ class GCPMetricsTest(absltest.TestCase):
     actual_log_payload = mock_logger.info.call_args.args[0]
     self.assertEqual(actual_log_payload, expected_log_payload)
 
-  @patch("cloud_goodput.ml_goodput_measurement.src.gcp_metrics.logger.error")
+  @patch("ml_goodput_measurement.src.gcp_metrics.logger.error")
   def test_send_metrics_failure(self, mock_logging_error):
 
     self.mock_client.create_time_series.side_effect = GoogleAPIError(
