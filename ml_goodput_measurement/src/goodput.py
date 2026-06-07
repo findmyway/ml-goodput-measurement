@@ -6,6 +6,7 @@ Deviation.
 """
 
 import datetime
+import functools
 import logging
 import threading
 from typing import Any, Optional, Union
@@ -78,17 +79,38 @@ class _CloudLogger:
       job_name: str,
       log_name: str,
       max_logs_retention_period: Optional[datetime.timedelta] = None,
+      *,
+      background_grace_period_s: float = 5.0,
+      background_batch_size: int = 100,
+      background_max_latency_s: float = 2.0,
   ):
     """_CloudLogger constructor.
+
+    Cloud Logging writes are dispatched asynchronously through
+    google-cloud-logging's `CloudLoggingHandler` (default transport
+    `BackgroundThreadTransport`), so `write_cloud_logging_entry` returns
+    immediately and a daemon thread flushes batched entries in the
+    background. Call `flush()` to drain the queue before reading back
+    via GoodputCalculator.
 
     Args:
       job_name: Name of the job the _CloudLogger is for.
       log_name: Name of the log being written.
       max_logs_retention_period: Maximum retention period for Cloud Logging
         logs.
+
+    Keyword-only:
+      background_grace_period_s: Shutdown drain budget (seconds). Default 5.0.
+      background_batch_size: Entries committed per `write_entries` RPC.
+        Default 100.
+      background_max_latency_s: After the first entry arrives, max time the
+        worker waits to accumulate up to `background_batch_size` more entries
+        before committing. Default 2.0.
     """
 
     import google.cloud.logging  # pylint: disable=g-import-not-at-top
+    from google.cloud.logging_v2.handlers import CloudLoggingHandler  # pylint: disable=g-import-not-at-top
+    from google.cloud.logging_v2.handlers.transports import BackgroundThreadTransport  # pylint: disable=g-import-not-at-top
 
     self.job_name = job_name
     logging_client = google.cloud.logging.Client()
@@ -102,19 +124,59 @@ class _CloudLogger:
         else _CLOUD_LOGGING_DEFAULT_RETENTION
     )
 
+    # Async write path. Synchronous `Logger.log_struct` adds ~50-150 ms of
+    # gRPC RTT per call, which compounds across the per-step recorder calls
+    # on a training loop's critical path. Delegating to CloudLoggingHandler
+    # gives us a daemon-thread worker, batched commit (N entries per RPC),
+    # atexit-safe shutdown, and call-time entry timestamps (LogRecord.created
+    # is set at the .info() call site, not at flush time).
+    transport_factory = functools.partial(
+        BackgroundThreadTransport,
+        grace_period=background_grace_period_s,
+        batch_size=background_batch_size,
+        max_latency=background_max_latency_s,
+    )
+    self._async_handler = CloudLoggingHandler(
+        client=logging_client,
+        name=log_name,
+        transport=transport_factory,  # type: ignore[arg-type]
+    )
+    # Use a unique stdlib logger per log_name so multiple _CloudLogger
+    # instances don't share handlers, and so propagate=False keeps dict
+    # payloads from leaking to whatever handlers are on the root logger.
+    self._async_logger = logging.getLogger(f'_ml_goodput_async.{log_name}')
+    self._async_logger.setLevel(logging.INFO)
+    if self._async_handler not in self._async_logger.handlers:
+      self._async_logger.addHandler(self._async_handler)
+      self._async_logger.propagate = False
+
   def write_cloud_logging_entry(self, entry) -> None:
     """Writes an entry to the Cloud Logging logger at INFO level.
+
+    Dispatched asynchronously via `BackgroundThreadTransport` — returns
+    immediately. Call `flush()` to drain pending entries before reading
+    back via GoodputCalculator.
 
     Args:
       entry: JSON-serializable structured log dictionary.
     """
     if entry is None:
       return
-    if entry[_JOB_NAME] == self.job_name:
-      self.logger.log_struct(
-          entry,
-          severity='INFO',
-      )
+    if entry[_JOB_NAME] != self.job_name:
+      return
+    # CloudLoggingHandler routes dict msg → StructEntry == log_struct
+    # semantics. LogRecord.created is set at the .info() call site, so
+    # the eventual GCP entry timestamp reflects when the caller wrote.
+    self._async_logger.info(entry)
+
+  def flush(self) -> None:
+    """Drain the background queue.
+
+    Internally `BackgroundThreadTransport.flush()` is `queue.join()` — it
+    blocks until every enqueued entry has been committed. The transport's
+    `grace_period` bounds the worst case if the GCP endpoint is slow.
+    """
+    self._async_handler.flush()
 
   def _get_filter_msg(
       self,
@@ -254,6 +316,10 @@ class GoodputRecorder:
       logger_name: str,
       logging_enabled=False,
       cloud_logger: Optional[_CloudLogger] = None,
+      *,
+      background_grace_period_s: float = 5.0,
+      background_batch_size: int = 100,
+      background_max_latency_s: float = 2.0,
   ):
     """GoodputRecorder constructor.
 
@@ -266,6 +332,15 @@ class GoodputRecorder:
         this value to True if the Recorder is being called from TPU worker 0 and
         the application's configurations request Goodput logging.
       cloud_logger: Should never be passed directly by the user.
+
+    Keyword-only:
+      background_grace_period_s: Forwarded to the `_CloudLogger` this
+        recorder owns. Shutdown drain budget. Default 5.0.
+      background_batch_size: Forwarded to the `_CloudLogger` this recorder
+        owns. Entries committed per `write_entries` RPC. Default 100.
+      background_max_latency_s: Forwarded to the `_CloudLogger` this
+        recorder owns. Max time the worker waits to accumulate a batch
+        after the first entry arrives. Default 2.0.
     """
     self.job_name = job_name
     # If logging is disabled for this process, do not create a _cloud_logger
@@ -278,7 +353,13 @@ class GoodputRecorder:
     if cloud_logger is not None:
       self._cloud_logger = cloud_logger
     else:
-      self._cloud_logger = _CloudLogger(job_name, logger_name)
+      self._cloud_logger = _CloudLogger(
+          job_name,
+          logger_name,
+          background_grace_period_s=background_grace_period_s,
+          background_batch_size=background_batch_size,
+          background_max_latency_s=background_max_latency_s,
+      )
 
   def record_step_start_time(
       self, step: int, start_time: Optional[datetime.datetime] = None
